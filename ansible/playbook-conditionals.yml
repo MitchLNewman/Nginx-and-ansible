@@ -1,0 +1,27 @@
+- hosts: localhost
+  tasks:
+  # this will fail the second time the playbook is run since it can't create a folder which already exists
+  - name: Set up a task that will fail
+    ansible.builtin.command: "mkdir /home/ubuntu/failfolder"
+    # we can set up a way of ignoring errors
+    ignore_errors: True
+  - name: Create a file
+    become: True
+    copy:
+      content: "Spent way too long on this, changed to trigger failed_when"
+      dest: /etc/robbieconfig
+      mode: '0644'
+    # add a register variable, the output of the module will be stored in this
+    register: robbietaskvar
+    # adding a conditional of when to fail the task
+    failed_when: robbietaskvar.checksum != "e78e38bad2bf992c461a9c1390dcd885872185fb"
+  - name: Print the whole var
+    debug:
+      var: robbietaskvar
+  - name: Print a message
+    debug:
+      msg: "Below is a variable"
+  - name: Print specific parts of the var
+    debug:
+      # we can access specific parts of the variable like a dictionay
+      var: robbietaskvar.failed
